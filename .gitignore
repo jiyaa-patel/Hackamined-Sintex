@@ -148,6 +148,8 @@ venv.bak/
 .spyderproject
 .spyproject
 
+
+
 # Rope project settings
 .ropeproject
 
@@ -205,3 +207,19 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+venv312/
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
