@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, time
 from typing import Any, Dict
 
 import pandas as pd
@@ -29,13 +29,15 @@ def call_health(api_base: str) -> bool:
         return False
 
 
-def call_predict(api_base: str, selected_date: date, inverter_id: int) -> Dict[str, Any]:
+def call_predict(api_base: str, selected_date: date, inverter_id: int, selected_time: time) -> Dict[str, Any]:
     # Clean the base URL (strip trailing /predict if present)
     clean_base = api_base.rstrip("/").replace("/predict", "").replace("/chat", "")
     # Match PredictHistoricalRequest: {inverter_id: str, timestamp: str}
+    # Format time as HH:MM:SS.000Z
+    time_str = selected_time.strftime("%H:%M:%0.000Z")
     payload = {
         "inverter_id": str(inverter_id),
-        "timestamp": f"{selected_date}T04:45:00.000Z"
+        "timestamp": f"{selected_date}T{selected_time.strftime('%H:%M:%S')}.000Z"
     }
     r = requests.post(f"{clean_base}/predict", json=payload, timeout=60)
     r.raise_for_status()
@@ -139,10 +141,10 @@ with st.sidebar:
         "Input date",
         value=st.session_state.selected_date,
         min_value=date(2024, 3, 1),
-        max_value=date(2024, 3, 26),
+        max_value=date(2026, 3, 2),
         help="Select the date for which you want prediction."
     )
-    st.warning("Note: Historical data is only available for March 2024 (2024-03-01 to 2024-03-26).")
+    st.warning("Note: Historical data is available from March 2024 to March 2026 (2024-03-01 to 2026-03-02).")
 
     selected_inverter_id = st.number_input(
         "Input inverter ID",
@@ -151,6 +153,20 @@ with st.sidebar:
         value=1,
         step=1,
         help="Allowed inverter IDs: 1 to 12."
+    )
+
+    # Time selection with 5-minute increments
+    time_options = []
+    for h in range(24):
+        for m in range(0, 60, 5):
+            time_options.append(time(h, m))
+    
+    selected_time = st.selectbox(
+        "Input time (5-min intervals)",
+        options=time_options,
+        index=57, # Default to 04:45 (57th index) to keep original behavior
+        format_func=lambda x: x.strftime("%H:%M"),
+        help="Select a time. Data is available in 5-minute increments."
     )
 
     get_prediction = st.button("Get Prediction", use_container_width=True)
@@ -171,7 +187,7 @@ if get_prediction:
         st.error("Backend is offline. Start the FastAPI service and try again.")
     else:
         try:
-            result = call_predict(api_base, selected_date, selected_inverter_id)
+            result = call_predict(api_base, selected_date, selected_inverter_id, selected_time)
             st.session_state.prediction_result = result
         except requests.HTTPError as e:
             try:
@@ -220,9 +236,15 @@ else:
             or ""
         )
         if str(narrative).strip():
-            st.info(str(narrative))
+            b = str(result_band).lower().strip()
+            if b in ("high", "h"):
+                st.error(str(narrative))
+            elif b in ("medium", "med", "m"):
+                st.warning(str(narrative))
+            else:
+                st.success(str(narrative))
         else:
-            st.warning("No narrative summary returned by backend.")
+            st.info("No narrative summary returned by backend.")
 
         recommendations = result.get("recommended_actions") or []
         if recommendations:

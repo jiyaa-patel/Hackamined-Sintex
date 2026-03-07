@@ -1,27 +1,21 @@
 import os
-import time
-import random
 import json
-from google import genai
-from google.genai import types
+import ollama
 from dotenv import load_dotenv
 from app.schemas import FeatureImpact
 from typing import List
 
 def generate_risk_narrative(inverter_id: str, risk_score: float, risk_band: str, top_factors: List[FeatureImpact]):
     """
-    Constructs a diagnostic AI narrative using the modern Google GenAI SDK.
+    Constructs a diagnostic AI narrative using local Ollama.
     """
-    load_dotenv()
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if api_key:
-        api_key = api_key.strip('"').strip("'")
+    load_dotenv(override=True)
+    model = os.environ.get("OLLAMA_MODEL", "llama3")
+    host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
     
-    if not api_key or not api_key.startswith("AIza"):
-        return f"Operational analysis indicates a {risk_band} risk level.", ["Check system logs", "Monitor performance trends"]
+    # Initialize client (implicit in simplified ollama lib, but setting host via env is standard)
+    # The ollama-python library uses OLLAMA_HOST env var by default.
 
-    client = genai.Client(api_key=api_key, http_options={'timeout': 10.0})
-    
     factor_strings = [f"- {f.feature}: {f.impact}" for f in top_factors]
     prompt = f"""
     Analyze solar inverter risk:
@@ -35,29 +29,19 @@ def generate_risk_narrative(inverter_id: str, risk_score: float, risk_band: str,
     }}
     """
 
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            response = client.models.generate_content(
-                model='gemini-flash-latest',
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type='application/json'
-                )
-            )
-            
-            data = json.loads(response.text)
-            return data.get("narrative_summary"), data.get("recommended_actions")
-            
-        except Exception as e:
-            error_msg = str(e).lower()
-            if "429" in error_msg or "quota" in error_msg or "rate" in error_msg:
-                if attempt < max_retries - 1:
-                    wait_time = (2 ** attempt) + random.random()
-                    print(f"GenAI Rate Limited (Attempt {attempt+1}). Retrying in {wait_time:.1f}s...")
-                    time.sleep(wait_time)
-                    continue
-            print(f"GenAI SDK Error: {e}")
-            break
+    try:
+        response = ollama.chat(
+            model=model,
+            messages=[{'role': 'user', 'content': prompt}],
+            format='json'
+        )
+        
+        data = json.loads(response['message']['content'])
+        return data.get("narrative_summary"), data.get("recommended_actions")
+        
+    except Exception as e:
+        print(f"Ollama Error: {e}")
+        # Local fallback if Ollama fails
+        return f"System detected {risk_band} risk due to technical anomalies in inverter telemetry.", \
+               ["Inspect electrical connections", "Check cooling systems", "Review maintenance logs"]
 
-    return f"System detected {risk_band} risk due to telemetry anomalies.", ["Inspect electrical connections", "Review recent maintenance logs"]
