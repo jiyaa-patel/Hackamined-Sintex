@@ -223,9 +223,8 @@ venv312/
 # OS files
 .DS_Store
 Thumbs.db
+
 # Large Data & Models
 *.csv
-*.pkl
 backend-2/data/historical_telemetry.csv
-backend-2/model.pkl
 backend-2/.env

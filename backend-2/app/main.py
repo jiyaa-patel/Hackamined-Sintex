@@ -30,13 +30,9 @@ def technical_expert_chat(request: ChatRequest):
 def health_check():
     return {"status": "ok", "message": "Backend-2 is running effectively."}
 
-@app.post("/predict", response_model=PredictResponse)
-def analyze_inverter_risk(request: PredictRequest):
+def _analyze_inverter_risk(request: PredictRequest):
     """
-    1. Receive structured JSON payload with precomputed features.
-    2. Pass to ML Model for dynamic risk_score and risk_band.
-    3. Generate GenAI narrative summary & recommendations.
-    4. Compile final Payload.
+    Internal helper to process prediction features and generate AI results.
     """
     try:
         # Step 2: Extract ML metrics
@@ -91,15 +87,15 @@ def analyze_csv_batch(csv_text: str = Body(..., media_type="text/plain")):
             )
             
             # Predict and append
-            results.append(analyze_inverter_risk(req))
+            results.append(_analyze_inverter_risk(req))
             
         return results
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to parse CSV: {str(e)}")
 
-@app.post("/predict-historical", response_model=PredictResponse)
-def analyze_historical_risk(request: PredictHistoricalRequest):
+@app.post("/predict", response_model=PredictResponse)
+def analyze_inverter_risk(request: PredictHistoricalRequest):
     """
     Looks up pre-recorded raw telemetry from the 455MB CSV database based on 
     Inverter ID and Timestamp, compiles the ML features, and predicts risk.
@@ -121,7 +117,7 @@ def analyze_historical_risk(request: PredictHistoricalRequest):
             features=features
         )
         
-        return analyze_inverter_risk(inference_req)
+        return _analyze_inverter_risk(inference_req)
         
     except HTTPException as he:
         raise he
