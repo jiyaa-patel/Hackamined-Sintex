@@ -228,3 +228,7 @@ Thumbs.db
 *.csv
 backend-2/data/historical_telemetry.csv
 backend-2/.env
+
+
+.streamlit/
+.streamlit/cache/

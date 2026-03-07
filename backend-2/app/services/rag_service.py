@@ -1,4 +1,6 @@
 import os
+import time
+import random
 from google import genai
 from dotenv import load_dotenv
 
@@ -22,9 +24,9 @@ def get_chat_recommendations(user_query: str, history: list = None):
         with open(KNOWLEDGE_PATH, "r") as f:
             knowledge_base = f.read()
     except Exception as e:
-        知识库 = "General solar maintenance documentation."
+        knowledge_base = "General solar maintenance documentation."
 
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(api_key=api_key, http_options={'timeout': 10.0})
 
     # 2. Construct the RAG prompt
     prompt = f"""
@@ -38,12 +40,23 @@ def get_chat_recommendations(user_query: str, history: list = None):
     Keep response under 80 words. Friendly and professional.
     """
 
-    try:
-        response = client.models.generate_content(
-            model='gemini-flash-latest',
-            contents=prompt
-        )
-        return response.text.strip()
-    except Exception as e:
-        print(f"RAG SDK Error: {e}")
-        return "I am currently unable to access my knowledge base. Please try again later."
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model='gemini-flash-latest',
+                contents=prompt
+            )
+            return response.text.strip()
+        except Exception as e:
+            error_msg = str(e).lower()
+            print(f"RAG SDK Error (Attempt {attempt+1}): {e}")
+            if "429" in error_msg or "exhausted" in error_msg or "quota" in error_msg:
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) + random.random()
+                    time.sleep(wait_time)
+                    continue
+                return "The AI assistant is currently receiving too many requests (API rate limit exceeded). Please wait a minute and try again."
+            break
+            
+    return "I am currently unable to access my knowledge base. Please try again later."
