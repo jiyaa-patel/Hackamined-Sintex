@@ -1,0 +1,1 @@
+{"features": ["power_mean_30d", "power_std_30d", "temp_mean_30d", "temp_std_30d", "freq_mean_30d", "freq_std_30d", "v_ab_mean_30d", "v_ab_std_30d", "v_bc_mean_30d", "v_bc_std_30d", "v_ca_mean_30d", "v_ca_std_30d", "ambient_temp", "voltage_imbalance"]}

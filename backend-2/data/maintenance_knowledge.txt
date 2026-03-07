@@ -1,0 +1,40 @@
+SOLAR INVERTER MAINTENANCE AND TROUBLESHOOTING GUIDE
+
+1. VOLTAGE IMBALANCE
+- Definition: A difference in voltage levels between the three phases (v_ab, v_bc, v_ca).
+- Normal Range: Imbalance should be less than 2%.
+- Symptoms: Overheating of the inverter, reduced efficiency, potential triggering of protective shutdowns.
+- Recommendations:
+  * Check for loose connections in the AC combiner box.
+  * Verify transformer tap settings if applicable.
+  * Inspect external grid conditions; local load imbalances can cause this.
+
+2. OVERHEATING (HIGH TEMP)
+- Definition: Inverter internal temperature (temp_mean_30d) exceeding 85°C.
+- Causes: Blocked air vents, failed cooling fans, high ambient temperature, or heavy loading.
+- Recommendations:
+  * Inspect and clean air filters and cooling fins.
+  * Check if internal cooling fans are operational.
+  * Ensure adequate clearance around the inverter for airflow.
+
+3. UNSTABLE FREQUENCY
+- Definition: Frequency (freq_mean_30d) fluctuating outside the 49.5Hz - 50.5Hz or 59.5Hz - 60.5Hz range.
+- Causes: Unstable power grid or internal synchronization issues.
+- Recommendations:
+  * Review grid settings in the inverter firmware.
+  * Contact the utility provider to verify grid stability in the area.
+
+4. POWER DEGRADATION
+- Definition: Sudden drop in power output (power_mean_30d) despite clear skies.
+- Causes: Soiling (dust/dirt) on solar panels, shading, or internal inverter component aging (e.g., capacitors).
+- Recommendations:
+  * Conduct a string-level analysis to isolate panels with low performance.
+  * Clean solar panels to remove dust or bird droppings.
+  * Check for shading from nearby vegetation.
+
+5. COMMUNICATION ERRORS
+- Symptoms: Inverter data not appearing in the dashboard or inconsistent readings.
+- Recommendations:
+  * Verify the data logger (MAC) connectivity to the network.
+  * Check RS485 or Ethernet cabling for integrity.
+  * Ensure the inverter ID mapping in the data logger is correct.
