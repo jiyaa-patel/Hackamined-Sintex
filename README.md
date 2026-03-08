@@ -37,14 +37,10 @@ An advanced predictive maintenance platform that leverages Machine Learning to a
 
 ### 👥 Team Members
 1. Shubham (@shubham280706)
-2. Jiya (@jiyaa-patel)
+2. Jiya (@jiyaa-patel, phone number: 9898840580)
 3. Megh (@Megh36)
 4. Shrey
 
 
-team members:
-1. Shubham (shubham280706)
-2. Jiya (jiyaa-patel)
-3. Megh (Megh36)
-4. Shrey (Shrey_9075)
+
 
